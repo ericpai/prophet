@@ -15,3 +15,8 @@
 
 account-secret.yaml
 .vscode
+node_modules
+
+*/.DS_Store
+static/js/prophet.js
+prophet
