@@ -9,7 +9,10 @@ import (
 
 func InitAWSEC2Client() (map[string]ec2iface.EC2API, error) {
 	ec2Clients := make(map[string]ec2iface.EC2API)
-	for _, account := range prophetConfig.AWS.Accounts {
+	for name, account := range prophetConfig.Accounts {
+		if account.Provider != "aws" {
+			continue
+		}
 		cfg, err := external.LoadDefaultAWSConfig()
 		if err != nil {
 			return nil, err
@@ -17,7 +20,7 @@ func InitAWSEC2Client() (map[string]ec2iface.EC2API, error) {
 		if account.hasServicePrivilege("ec2") {
 			cfg.Credentials = aws.NewStaticCredentialsProvider(account.AccessKeyID, account.SecretAccessKey, "")
 			cfg.Region = account.Region
-			ec2Clients[account.Name] = ec2.New(cfg)
+			ec2Clients[name] = ec2.New(cfg)
 		}
 	}
 	return ec2Clients, nil

@@ -6,23 +6,19 @@ import (
 )
 
 type ProphetConfig struct {
-	Currency string           `yaml:"currency"`
-	AWS      ProphetAWSConfig `yaml:"aws"`
+	Currency string             `yaml:"currency"`
+	Accounts map[string]Account `yaml:"accounts"`
 }
 
-type ProphetAWSConfig struct {
-	Accounts []AWSAccount
-}
-
-type AWSAccount struct {
-	Name            string   `yaml:"name"`
+type Account struct {
+	Provider        string   `yaml:"provider"`
 	AccessKeyID     string   `yaml:"access_key_id"`
 	SecretAccessKey string   `yaml:"secret_access_key"`
 	Region          string   `yaml:"region"`
 	Services        []string `yaml:"services"`
 }
 
-func (a *AWSAccount) hasServicePrivilege(service string) bool {
+func (a *Account) hasServicePrivilege(service string) bool {
 	for _, v := range a.Services {
 		if v == service {
 			return true

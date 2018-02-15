@@ -25,12 +25,11 @@ func (m *MockVMManager) OverviewInstances(account string) ([]data.InstancesOverv
 				Count: 2,
 			},
 		}, nil
-	} else {
-		return nil, data.InvalidIaaSAccountError{
-			Account:  account,
-			Service:  "ec2",
-			Provider: "test",
-		}
+	}
+	return nil, data.InvalidIaaSAccountError{
+		Account:  account,
+		Service:  "ec2",
+		Provider: "test",
 	}
 }
 

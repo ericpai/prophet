@@ -12,4 +12,5 @@ func init() {
 	apiRouter := MainRouter.PathPrefix("/api").Subrouter()
 	MainRouter.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 	initVMRouters(apiRouter)
+	initAccountRouters(apiRouter)
 }

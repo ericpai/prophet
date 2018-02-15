@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func initVMRouters(apiRouter *mux.Router) {
+func initAccountRouters(apiRouter *mux.Router) {
 	vmRouter := apiRouter.PathPrefix("/vm").Subrouter()
 	vmRouter.HandleFunc("/overview", controllers.GetVMInstancesHandler).Methods("GET")
 }
