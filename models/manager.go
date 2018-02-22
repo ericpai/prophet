@@ -7,6 +7,7 @@ import (
 
 type VMManager interface {
 	OverviewInstances(account string) ([]data.InstancesOverview, error)
+	OverviewOfferings(account string) (data.InstanceOfferingView, error)
 }
 
 func GetVMManagers() map[string]VMManager {

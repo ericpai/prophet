@@ -1,5 +1,5 @@
 import {
-  ACTION_ACCOUNT_LIST, ACTION_SHOW_ACCOUNT
+  ACTION_ACCOUNT_LIST, ACTION_SHOW_ACCOUNT,
 } from '../common/prophetConstants';
 
 function accountReducer(

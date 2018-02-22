@@ -1,98 +1,95 @@
 import React, { Component } from 'react';
-import Plot from 'react-plotly.js';
-import { Segment, Divider, Grid, Statistic, Container, Header } from 'semantic-ui-react';
+import { randomColor } from 'randomcolor';
+import {
+  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
+} from 'recharts';
+import {
+  Divider, Statistic, Container, Header, Card,
+} from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
 
 class InstanceOverviewComponent extends Component {
 
   render() {
-    let values = [];
-    let labels = [];
-    let total = 0;
+    return <Container style={{ marginTop: '7em' }} textAlign={'center'}>
+      <Header as={'h1'} textAlign={'left'}>服务器</Header>
+      <Divider fitted style={{ marginBottom: '2em' }} />
+      <Card.Group itemsPerRow={2}>
+        {this.renderInstances()}
+        {this.renderTypes()}
+      </Card.Group>
+    </Container >;
+  }
 
+  renderInstances() {
+    let total = 0;
     this.props.vmData.map(function (v, i) {
-      values.push(v['count']);
-      labels.push(v['type']);
       total += v['count'];
     });
-    const pieData = [{
-      values: values,
-      labels: labels,
-      type: 'pie',
-    }];
-    const barData = [{
-      y: values,
-      x: labels,
-      text: values,
-      textposition: 'auto',
-      type: 'bar',
-    }];
-    const pieLayout = {
-      width: 350,
-      height: 300,
-      autosize: true,
-      title: '<b>类型占比</b>',
-      titlefont: {
-        family: `'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif`,
-        size: 14,
-      },
-    };
-    const barLayout = {
-      width: 350,
-      height: 300,
-      autosize: true,
-      title: '<b>类型总量</b>',
-      titlefont: {
-        family: `'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif`,
-        size: 14,
-      },
-    };
+    return <Card fluid>
+      <Card.Content style={{ display: 'flex', flexDirection: 'column' }}>
+        <Card.Header>使用总量</Card.Header>
+        <Card.Description textAlign={'center'}
+          style={{
+            display: 'flex', flex: 1,
+            justifyContent: 'center', alignItems: 'center'
+          }}>
+          {
+            function (vmData, total) {
+              if (vmData.length == 0) {
+                return <Card.Content>无数据</Card.Content>;
+              }
+              return <Statistic size={'huge'}>
+                <Statistic.Value>{total}</Statistic.Value>
+                <Statistic.Label>instances</Statistic.Label>
+              </Statistic>;
+            }(this.props.vmData, total)
+          }
 
-    return <Container style={{ marginTop: '7em' }} textAlign={'center'}>
-      <Header as='h1'>服务器</Header>
-      <Divider fitted />
-      <Grid columns={3} divided verticalAlign={'middle'} textAlign={'center'}>
-        <Grid.Row>
-          <Grid.Column verticalAlign={'middle'} textAlign={'center'}
-            className={'ds_cell'}>
-            <Header as='h5'>使用总量</Header>
-            <Statistic size={'huge'}>
-              <Statistic.Value>{total}</Statistic.Value>
-              <Statistic.Label>instances</Statistic.Label>
-            </Statistic>
-          </Grid.Column>
-          <Grid.Column verticalAlign={'middle'} textAlign={'center'}
-            className={'ds_cell'}>
-            <Plot
-              style={{ width: '100%', height: '100%' }}
-              useResizeHandler={true}
-              data={barData}
-              layout={barLayout}
-              config={{
-                displayModeBar: false, staticPlot: true,
-                editable: false
-              }}
-            />
-          </Grid.Column>
-          <Grid.Column verticalAlign={'middle'} textAlign={'center'}
-            className={'ds_cell'}>
-            <Plot
-              style={{ width: '100%', height: '100%' }}
-              useResizeHandler={true}
-              data={pieData}
-              layout={pieLayout}
-              config={{
-                displayModeBar: false, staticPlot: true,
-                editable: false
-              }}
-            />
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
-    </Container >
+        </Card.Description>
+      </Card.Content>
+    </Card>;
+  }
 
+  renderTypes() {
+    let today = new Date()
+    let rc = randomColor({
+      luminosity: 'dark',
+      count: this.props.vmData.length,
+      seed: today.getDate()
+    });
+    return <Card fluid>
+      <Card.Content>
+        <Card.Header>类型占比</Card.Header>
 
+        <Card.Description textAlign={'center'}>
+          {
+            function (vmData, rc) {
+              if (vmData.length == 0) {
+                return <Card.Content>无数据</Card.Content>;
+              }
+              return <ResponsiveContainer
+                width={'100%'} height={300} style={{ margin: 'auto' }}>
+                <PieChart>
+                  <Pie data={vmData} dataKey={'count'}
+                    nameKey={'type'} label>
+                    {
+                      vmData.map((entry, index) =>
+                        <Cell key={`slice-${index}`} fill={rc[index]} />
+                      )
+                    }
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>;
+            }(this.props.vmData, rc)
+          }
+
+        </Card.Description>
+      </Card.Content>
+    </Card>;
   }
 }
 

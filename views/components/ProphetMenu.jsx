@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Icon, Menu, Container, Dropdown } from 'semantic-ui-react';
+import { Menu, Container, Dropdown } from 'semantic-ui-react';
 import { listAccounts, dispatchAll } from '../actions/accountActions';
 import { connect } from 'react-redux';
 
@@ -25,21 +25,21 @@ class ProphetMenuComponent extends Component {
           <Dropdown.Menu>{
             Object.entries(this.props.accountData).map(function (v, i) {
               return <Dropdown.Item key={i}>
-                <i className='dropdown icon' />
-                <span className='text'>{v[0]}</span>
+                <i className={'dropdown icon'} />
+                <span className={'text'}>{v[0]}</span>
                 <Dropdown.Menu>{
                   v[1].map(function (name, j) {
                     return <Dropdown.Item
                       key={j}
                       active={currentAccount == name && currentProvider == v[0]}
                       onClick={() => fetchAll(name, v[0])}>
-                      <span className='text'>{name}</span>
-                    </Dropdown.Item>
+                      <span className={'text'}>{name}</span>
+                    </Dropdown.Item>;
                   })
 
                 }
                 </Dropdown.Menu>
-              </Dropdown.Item>
+              </Dropdown.Item>;
             })
           }
 
@@ -48,16 +48,17 @@ class ProphetMenuComponent extends Component {
         {
           function () {
             if (currentAccount != null && currentProvider != null) {
-              return <Menu.Menu position='right'>
+              return <Menu.Menu position={'right'}>
                 <Menu.Item name={
                   `当前账号：${currentAccount}  运营商：${currentProvider}`} />
-              </Menu.Menu>
+              </Menu.Menu>;
             }
+            return <div></div>;
           }()
         }
 
       </Container>
-    </Menu>
+    </Menu>;
   }
 }
 
@@ -72,7 +73,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     getAccounts: () => dispatch(listAccounts()),
-    fetchAll: (account, provider) => dispatch(dispatchAll(account, provider))
+    fetchAll: (account, provider) => dispatch(dispatchAll(account, provider)),
   };
 }
 
