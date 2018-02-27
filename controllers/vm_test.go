@@ -40,20 +40,18 @@ func (m *MockVMManager) OverviewOfferings(account string) (data.InstanceOffering
 		return data.InstanceOfferingView{
 			OfferingTypes: []ec2.OfferingTypeValues{
 				aws.OfferingTypeValuesOnDemand,
-				ec2.OfferingTypeValuesHeavyUtilization,
-				ec2.OfferingTypeValuesLightUtilization,
-				ec2.OfferingTypeValuesMediumUtilization,
 				ec2.OfferingTypeValuesAllUpfront,
+				ec2.OfferingTypeValuesPartialUpfront,
 				ec2.OfferingTypeValuesNoUpfront,
 			},
 			Offerings: []data.InstanceOffering{
 				{
 					Type:   "m1.xlarge",
-					Counts: []int{1, 2, 3, 4, 5},
+					Counts: []int{1, 2, 3, 4},
 				},
 				{
 					Type:   "m2.xlarge",
-					Counts: []int{5, 4, 3, 2, 1},
+					Counts: []int{4, 3, 2, 1},
 				},
 			},
 		}, nil

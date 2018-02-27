@@ -70,10 +70,8 @@ func (m *VMManager) OverviewOfferings(account string) (
 	rv := data.InstanceOfferingView{
 		OfferingTypes: []ec2.OfferingTypeValues{
 			OfferingTypeValuesOnDemand,
-			ec2.OfferingTypeValuesHeavyUtilization,
-			ec2.OfferingTypeValuesLightUtilization,
-			ec2.OfferingTypeValuesMediumUtilization,
 			ec2.OfferingTypeValuesAllUpfront,
+			ec2.OfferingTypeValuesPartialUpfront,
 			ec2.OfferingTypeValuesNoUpfront,
 		},
 		Offerings: []data.InstanceOffering{},
@@ -111,29 +109,29 @@ func (m *VMManager) OverviewOfferings(account string) (
 	tmpMap := make(map[string]map[ec2.OfferingTypeValues]int)
 	for _, inst := range instances {
 		tmpMap[inst.Type] = map[ec2.OfferingTypeValues]int{
-			OfferingTypeValuesOnDemand:              inst.Count,
-			ec2.OfferingTypeValuesHeavyUtilization:  0,
-			ec2.OfferingTypeValuesLightUtilization:  0,
-			ec2.OfferingTypeValuesMediumUtilization: 0,
-			ec2.OfferingTypeValuesAllUpfront:        0,
-			ec2.OfferingTypeValuesNoUpfront:         0,
+			OfferingTypeValuesOnDemand:           inst.Count,
+			ec2.OfferingTypeValuesAllUpfront:     0,
+			ec2.OfferingTypeValuesPartialUpfront: 0,
+			ec2.OfferingTypeValuesNoUpfront:      0,
 		}
 	}
 	for _, ri := range output.ReservedInstances {
 		instTypeStr := (string)(ri.InstanceType)
 		if _, exist := tmpMap[instTypeStr]; !exist {
 			tmpMap[(string)(ri.InstanceType)] = map[ec2.OfferingTypeValues]int{
-				OfferingTypeValuesOnDemand:              0,
-				ec2.OfferingTypeValuesHeavyUtilization:  0,
-				ec2.OfferingTypeValuesLightUtilization:  0,
-				ec2.OfferingTypeValuesMediumUtilization: 0,
-				ec2.OfferingTypeValuesAllUpfront:        0,
-				ec2.OfferingTypeValuesNoUpfront:         0,
+				OfferingTypeValuesOnDemand:           0,
+				ec2.OfferingTypeValuesAllUpfront:     0,
+				ec2.OfferingTypeValuesPartialUpfront: 0,
+				ec2.OfferingTypeValuesNoUpfront:      0,
 			}
 		}
-		tmpMap[instTypeStr][OfferingTypeValuesOnDemand] -=
-			(int)(*ri.InstanceCount)
-		tmpMap[instTypeStr][ri.OfferingType] += (int)(*ri.InstanceCount)
+		if ri.OfferingType == ec2.OfferingTypeValuesAllUpfront || ri.OfferingType == ec2.OfferingTypeValuesNoUpfront ||
+			ri.OfferingType == ec2.OfferingTypeValuesPartialUpfront {
+			tmpMap[instTypeStr][OfferingTypeValuesOnDemand] -=
+				(int)(*ri.InstanceCount)
+			tmpMap[instTypeStr][ri.OfferingType] += (int)(*ri.InstanceCount)
+		}
+
 	}
 
 	for k, v := range tmpMap {

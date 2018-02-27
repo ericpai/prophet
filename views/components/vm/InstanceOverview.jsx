@@ -3,23 +3,17 @@ import { randomColor } from 'randomcolor';
 import {
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
-import {
-  Divider, Statistic, Container, Header, Card,
-} from 'semantic-ui-react';
+import { Statistic, Card } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
 
 class InstanceOverviewComponent extends Component {
 
   render() {
-    return <Container style={{ marginTop: '7em' }} textAlign={'center'}>
-      <Header as={'h1'} textAlign={'left'}>服务器</Header>
-      <Divider fitted style={{ marginBottom: '2em' }} />
-      <Card.Group itemsPerRow={2}>
-        {this.renderInstances()}
-        {this.renderTypes()}
-      </Card.Group>
-    </Container >;
+    return <Card.Group itemsPerRow={2}>
+      {this.renderInstances()}
+      {this.renderTypes()}
+    </Card.Group>;
   }
 
   renderInstances() {
@@ -33,7 +27,7 @@ class InstanceOverviewComponent extends Component {
         <Card.Description textAlign={'center'}
           style={{
             display: 'flex', flex: 1,
-            justifyContent: 'center', alignItems: 'center'
+            justifyContent: 'center', alignItems: 'center',
           }}>
           {
             function (vmData, total) {
@@ -53,11 +47,11 @@ class InstanceOverviewComponent extends Component {
   }
 
   renderTypes() {
-    let today = new Date()
+    let today = new Date();
     let rc = randomColor({
       luminosity: 'dark',
       count: this.props.vmData.length,
-      seed: today.getDate()
+      seed: today.getDate(),
     });
     return <Card fluid>
       <Card.Content>

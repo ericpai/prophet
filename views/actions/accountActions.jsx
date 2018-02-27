@@ -2,7 +2,7 @@ import $ from 'jquery';
 import {
   ACTION_ACCOUNT_LIST, ACTION_SHOW_ACCOUNT
 } from '../common/prophetConstants';
-import { getVMOverview } from './vmActions';
+import { getVMOverview, getVMOfferings } from './vmActions';
 
 export function listAccounts() {
   return function (dispatch) {
@@ -26,6 +26,7 @@ export function dispatchAll(account, provider) {
   return function (dispatch) {
     dispatch(getVMOverview(account, provider));
     dispatch(showAccountAction(account, provider));
+    dispatch(getVMOfferings(account, provider));
   }
 }
 

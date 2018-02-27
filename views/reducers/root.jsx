@@ -1,9 +1,10 @@
 import { combineReducers } from 'redux';
-import vmReducer from './vm';
+import { vmReducer, vmOfferingReducer } from './vm';
 import accountReducer from './account';
 
 const RootReducer = combineReducers({
   vmReducer,
+  vmOfferingReducer,
   accountReducer,
 });
 

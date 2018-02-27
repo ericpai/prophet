@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { Container } from 'semantic-ui-react';
-import InstanceOverview from './components/vm/InstanceOverview';
+import VMIndex from './components/vm/VMIndex';
 import ProphetMenu from './components/ProphetMenu';
 import { Provider } from 'react-redux';
 import store from './common/store';
@@ -19,7 +19,7 @@ class App extends Component {
       </Provider>
 
       <Provider store={store}>
-        <InstanceOverview />
+        <VMIndex />
       </Provider>
     </Container>
   }
