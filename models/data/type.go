@@ -2,7 +2,6 @@ package data
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
 )
 
 type InvalidIaaSAccountError struct {
@@ -22,8 +21,8 @@ type InstancesOverview struct {
 }
 
 type InstanceOfferingView struct {
-	OfferingTypes []ec2.OfferingTypeValues `json:"offering_types"`
-	Offerings     []InstanceOffering       `json:"offerings"`
+	OfferingTypes []string           `json:"offering_types"`
+	Offerings     []InstanceOffering `json:"offerings"`
 }
 
 type InstanceOffering struct {
@@ -32,8 +31,13 @@ type InstanceOffering struct {
 }
 
 type VMStorage struct {
-	Unit     string  `json:"unit"`
-	Currency string  `json:"currency"`
-	Cost     float64 `json:"cost"`
-	Amount   int     `json:"amount"`
+	Unit     string                     `json:"unit"`
+	Currency string                     `json:"currency"`
+	Volumes  map[string]VMStorageVolume `json:"volumes"`
+}
+
+type VMStorageVolume struct {
+	Type   string  `json:"type"`
+	Cost   float64 `json:"cost"`
+	Amount int     `json:"amount"`
 }

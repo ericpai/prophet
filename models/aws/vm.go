@@ -69,11 +69,11 @@ func (m *VMManager) OverviewInstances(account string) (
 func (m *VMManager) OverviewOfferings(account string) (
 	data.InstanceOfferingView, error) {
 	rv := data.InstanceOfferingView{
-		OfferingTypes: []ec2.OfferingTypeValues{
-			OfferingTypeValuesOnDemand,
-			ec2.OfferingTypeValuesAllUpfront,
-			ec2.OfferingTypeValuesPartialUpfront,
-			ec2.OfferingTypeValuesNoUpfront,
+		OfferingTypes: []string{
+			string(OfferingTypeValuesOnDemand),
+			string(ec2.OfferingTypeValuesAllUpfront),
+			string(ec2.OfferingTypeValuesPartialUpfront),
+			string(ec2.OfferingTypeValuesNoUpfront),
 		},
 		Offerings: []data.InstanceOffering{},
 	}
@@ -107,30 +107,30 @@ func (m *VMManager) OverviewOfferings(account string) (
 	if err != nil {
 		return rv, err
 	}
-	tmpMap := make(map[string]map[ec2.OfferingTypeValues]int)
+	tmpMap := make(map[string]map[string]int)
 	for _, inst := range instances {
-		tmpMap[inst.Type] = map[ec2.OfferingTypeValues]int{
-			OfferingTypeValuesOnDemand:           inst.Count,
-			ec2.OfferingTypeValuesAllUpfront:     0,
-			ec2.OfferingTypeValuesPartialUpfront: 0,
-			ec2.OfferingTypeValuesNoUpfront:      0,
+		tmpMap[inst.Type] = map[string]int{
+			string(OfferingTypeValuesOnDemand):           inst.Count,
+			string(ec2.OfferingTypeValuesAllUpfront):     0,
+			string(ec2.OfferingTypeValuesPartialUpfront): 0,
+			string(ec2.OfferingTypeValuesNoUpfront):      0,
 		}
 	}
 	for _, ri := range output.ReservedInstances {
-		instTypeStr := (string)(ri.InstanceType)
+		instTypeStr := string(ri.InstanceType)
 		if _, exist := tmpMap[instTypeStr]; !exist {
-			tmpMap[(string)(ri.InstanceType)] = map[ec2.OfferingTypeValues]int{
-				OfferingTypeValuesOnDemand:           0,
-				ec2.OfferingTypeValuesAllUpfront:     0,
-				ec2.OfferingTypeValuesPartialUpfront: 0,
-				ec2.OfferingTypeValuesNoUpfront:      0,
+			tmpMap[string(ri.InstanceType)] = map[string]int{
+				string(OfferingTypeValuesOnDemand):           0,
+				string(ec2.OfferingTypeValuesAllUpfront):     0,
+				string(ec2.OfferingTypeValuesPartialUpfront): 0,
+				string(ec2.OfferingTypeValuesNoUpfront):      0,
 			}
 		}
 		if ri.OfferingType == ec2.OfferingTypeValuesAllUpfront || ri.OfferingType == ec2.OfferingTypeValuesNoUpfront ||
 			ri.OfferingType == ec2.OfferingTypeValuesPartialUpfront {
-			tmpMap[instTypeStr][OfferingTypeValuesOnDemand] -=
+			tmpMap[instTypeStr][string(OfferingTypeValuesOnDemand)] -=
 				(int)(*ri.InstanceCount)
-			tmpMap[instTypeStr][ri.OfferingType] += (int)(*ri.InstanceCount)
+			tmpMap[instTypeStr][string(ri.OfferingType)] += (int)(*ri.InstanceCount)
 		}
 
 	}
@@ -150,7 +150,9 @@ func (m *VMManager) OverviewOfferings(account string) (
 
 func (m *VMManager) OverviewStorage(account string) (data.VMStorage, error) {
 	api, exist := m.api[account]
-	rv := data.VMStorage{}
+	rv := data.VMStorage{
+		Volumes: make(map[string]data.VMStorageVolume),
+	}
 	if !exist {
 		return rv, data.InvalidIaaSAccountError{
 			Account:  account,
@@ -161,14 +163,17 @@ func (m *VMManager) OverviewStorage(account string) (data.VMStorage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	amountMap := make(map[ec2.VolumeState]int64)
+	amountMap := make(map[ec2.VolumeType]int64)
 
 	err := api.DescribeVolumesPagesWithContext(
 		ctx,
 		&ec2.DescribeVolumesInput{},
 		func(output *ec2.DescribeVolumesOutput, lastPage bool) bool {
 			for _, volume := range output.Volumes {
-				amountMap[volume.State] += *(volume.Size)
+				if volume.State == ec2.VolumeStateAvailable ||
+					volume.State == ec2.VolumeStateInUse {
+					amountMap[volume.VolumeType] += *(volume.Size)
+				}
 			}
 			return true
 		},
@@ -176,9 +181,15 @@ func (m *VMManager) OverviewStorage(account string) (data.VMStorage, error) {
 	if err != nil {
 		return rv, err
 	}
-	rv.Amount = (int)(amountMap[ec2.VolumeStateAvailable] + amountMap[ec2.VolumeStateInUse])
-	rv.Cost = (float64)(rv.Amount) * awsStorageCostPerGB
 	rv.Currency = "￥"
 	rv.Unit = "GB"
+	for k, v := range amountMap {
+		rv.Volumes[string(k)] = data.VMStorageVolume{
+			Type:   string(k),
+			Cost:   (float64)(v) * awsStorageCostPerGB,
+			Amount: int(v),
+		}
+	}
+
 	return rv, nil
 }

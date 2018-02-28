@@ -55,20 +55,24 @@ func (m mockEC2Client) DescribeVolumesPagesWithContext(
 	output := &ec2.DescribeVolumesOutput{
 		Volumes: []ec2.CreateVolumeOutput{
 			{
-				Size:  &sizeA,
-				State: ec2.VolumeStateAvailable,
+				Size:       &sizeA,
+				State:      ec2.VolumeStateAvailable,
+				VolumeType: ec2.VolumeTypeGp2,
 			},
 			{
-				Size:  &sizeA,
-				State: ec2.VolumeStateInUse,
+				Size:       &sizeA,
+				State:      ec2.VolumeStateInUse,
+				VolumeType: ec2.VolumeTypeGp2,
 			},
 			{
-				Size:  &sizeB,
-				State: ec2.VolumeStateInUse,
+				Size:       &sizeB,
+				State:      ec2.VolumeStateInUse,
+				VolumeType: ec2.VolumeTypeSt1,
 			},
 			{
-				Size:  &sizeC,
-				State: ec2.VolumeStateDeleted,
+				Size:       &sizeC,
+				State:      ec2.VolumeStateDeleted,
+				VolumeType: ec2.VolumeTypeSt1,
 			},
 		},
 	}
@@ -107,9 +111,19 @@ func TestOverviewInstances(t *testing.T) {
 func TestOverviewStorage(t *testing.T) {
 	expected := data.VMStorage{
 		Unit:     "GB",
-		Amount:   350,
-		Cost:     261.1,
 		Currency: "￥",
+		Volumes: map[string]data.VMStorageVolume{
+			"gp2": {
+				Type:   "gp2",
+				Amount: 200,
+				Cost:   149.2,
+			},
+			"st1": {
+				Type:   "st1",
+				Amount: 150,
+				Cost:   111.9,
+			},
+		},
 	}
 	m := &VMManager{
 		api: map[string]ec2iface.EC2API{
