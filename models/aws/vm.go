@@ -11,6 +11,7 @@ import (
 )
 
 const OfferingTypeValuesOnDemand ec2.OfferingTypeValues = "On Demand"
+const awsStorageCostPerGB = 0.746
 
 type VMManager struct {
 	api map[string]ec2iface.EC2API
@@ -144,5 +145,40 @@ func (m *VMManager) OverviewOfferings(account string) (
 			Counts: countSlice,
 		})
 	}
+	return rv, nil
+}
+
+func (m *VMManager) OverviewStorage(account string) (data.VMStorage, error) {
+	api, exist := m.api[account]
+	rv := data.VMStorage{}
+	if !exist {
+		return rv, data.InvalidIaaSAccountError{
+			Account:  account,
+			Service:  "ec2",
+			Provider: "aws",
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	amountMap := make(map[ec2.VolumeState]int64)
+
+	err := api.DescribeVolumesPagesWithContext(
+		ctx,
+		&ec2.DescribeVolumesInput{},
+		func(output *ec2.DescribeVolumesOutput, lastPage bool) bool {
+			for _, volume := range output.Volumes {
+				amountMap[volume.State] += *(volume.Size)
+			}
+			return true
+		},
+	)
+	if err != nil {
+		return rv, err
+	}
+	rv.Amount = (int)(amountMap[ec2.VolumeStateAvailable] + amountMap[ec2.VolumeStateInUse])
+	rv.Cost = (float64)(rv.Amount) * awsStorageCostPerGB
+	rv.Currency = "￥"
+	rv.Unit = "GB"
 	return rv, nil
 }

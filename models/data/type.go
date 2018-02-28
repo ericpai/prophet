@@ -30,3 +30,10 @@ type InstanceOffering struct {
 	Type   string `json:"type"`
 	Counts []int  `json:"counts"`
 }
+
+type VMStorage struct {
+	Unit     string  `json:"unit"`
+	Currency string  `json:"currency"`
+	Cost     float64 `json:"cost"`
+	Amount   int     `json:"amount"`
+}

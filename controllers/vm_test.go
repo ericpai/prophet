@@ -63,6 +63,22 @@ func (m *MockVMManager) OverviewOfferings(account string) (data.InstanceOffering
 	}
 }
 
+func (m *MockVMManager) OverviewStorage(account string) (data.VMStorage, error) {
+	if account == "account1" {
+		return data.VMStorage{
+			Currency: "￥",
+			Unit:     "GB",
+			Cost:     100.0,
+			Amount:   250,
+		}, nil
+	}
+	return data.VMStorage{}, data.InvalidIaaSAccountError{
+		Account:  account,
+		Service:  "ec2",
+		Provider: "test",
+	}
+}
+
 func TestGetVMInstancesHandler(t *testing.T) {
 	secretary = Secretary{
 		vmMamagers: map[string]models.VMManager{
@@ -233,6 +249,88 @@ func TestGetVMOfferingsHandler(t *testing.T) {
 
 	for _, testCase := range testCases {
 		testCase.AssertResponse(t, GetVMOfferingsHandler)
+	}
+
+}
+
+func TestGetVMStorageHandler(t *testing.T) {
+	secretary = Secretary{
+		vmMamagers: map[string]models.VMManager{
+			"test": &MockVMManager{},
+		},
+	}
+	storageSchema := map[string]interface{}{
+		"type":                 "object",
+		"additionalProperties": false,
+		"properties": map[string]interface{}{
+			"amount": map[string]interface{}{
+				"type": "number",
+			},
+			"cost": map[string]interface{}{
+				"type": "number",
+			},
+			"currency": map[string]interface{}{
+				"type": "string",
+			},
+			"unit": map[string]interface{}{
+				"type": "string",
+			},
+		},
+		"required": []string{"amount", "cost", "currency", "unit"},
+	}
+	testCases := []libs.APIAssertRequest{
+		{
+			Method: http.MethodGet,
+			URL:    "/api/vm/storage",
+			Values: url.Values{
+				"account":  []string{"account1"},
+				"provider": []string{"test"},
+			},
+			Schema: storageSchema,
+			Status: http.StatusOK,
+		},
+		{
+			Method: http.MethodGet,
+			URL:    "/api/vm/storage",
+			Values: url.Values{
+				"account":  []string{"account2"},
+				"provider": []string{"test"},
+			},
+			Schema: storageSchema,
+			Status: http.StatusForbidden,
+		},
+		{
+			Method: http.MethodGet,
+			URL:    "/api/vm/storage",
+			Values: url.Values{
+				"account":  []string{"account1"},
+				"provider": []string{"invalid_provider"},
+			},
+			Schema: storageSchema,
+			Status: http.StatusForbidden,
+		},
+		{
+			Method: http.MethodGet,
+			URL:    "/api/vm/storage",
+			Values: url.Values{
+				"account": []string{"account1"},
+			},
+			Schema: storageSchema,
+			Status: http.StatusUnprocessableEntity,
+		},
+		{
+			Method: http.MethodGet,
+			URL:    "/api/vm/storage",
+			Values: url.Values{
+				"provider": []string{"test"},
+			},
+			Schema: storageSchema,
+			Status: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase.AssertResponse(t, GetVMStorageHandler)
 	}
 
 }

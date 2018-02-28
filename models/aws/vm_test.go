@@ -46,6 +46,36 @@ func (m mockEC2Client) DescribeInstancesPagesWithContext(
 	return nil
 }
 
+func (m mockEC2Client) DescribeVolumesPagesWithContext(
+	ctx aws.Context,
+	input *ec2.DescribeVolumesInput,
+	fn func(*ec2.DescribeVolumesOutput, bool) bool,
+	opts ...aws.Option) error {
+	var sizeA, sizeB, sizeC int64 = 100, 150, 200
+	output := &ec2.DescribeVolumesOutput{
+		Volumes: []ec2.CreateVolumeOutput{
+			{
+				Size:  &sizeA,
+				State: ec2.VolumeStateAvailable,
+			},
+			{
+				Size:  &sizeA,
+				State: ec2.VolumeStateInUse,
+			},
+			{
+				Size:  &sizeB,
+				State: ec2.VolumeStateInUse,
+			},
+			{
+				Size:  &sizeC,
+				State: ec2.VolumeStateDeleted,
+			},
+		},
+	}
+	fn(output, true)
+	return nil
+}
+
 func TestOverviewInstances(t *testing.T) {
 	expected := []data.InstancesOverview{
 		{
@@ -72,4 +102,23 @@ func TestOverviewInstances(t *testing.T) {
 	actual, err = m.OverviewInstances("notfound")
 	assert.Error(t, err)
 	assert.Nil(t, actual)
+}
+
+func TestOverviewStorage(t *testing.T) {
+	expected := data.VMStorage{
+		Unit:     "GB",
+		Amount:   350,
+		Cost:     261.1,
+		Currency: "￥",
+	}
+	m := &VMManager{
+		api: map[string]ec2iface.EC2API{
+			"mock": &mockEC2Client{},
+		},
+	}
+	actual, err := m.OverviewStorage("mock")
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	actual, err = m.OverviewStorage("notfound")
+	assert.Error(t, err)
 }
